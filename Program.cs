@@ -60,11 +60,35 @@ namespace rpi_monitor
 
             return resultCode.ToString();
         }
+
+        internal static string[] GetProcessAverage()
+        {
+
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/usr/bin/uptime",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            var processResult = process.StandardOutput.ReadToEnd().Trim();
+            process.WaitForExit();
+
+            // 13:43:40 up 21 min,  2 users,  load average: 0.12, 0.07, 0.01
+            var loadAverages = processResult.Substring(processResult.IndexOf("average: ") + 9).Split(',');
+
+            return loadAverages;
+        }
         static void Main(string[] args)
         {
             while(true)
             {
                 Console.WriteLine("Temprature:" + GetTemperature() + " ThrottleState:" + GetThrottledState());
+                Console.WriteLine("[{0}]", string.Join(", ", GetProcessAverage()));
                 Thread.Sleep(5000);
             }
         }
