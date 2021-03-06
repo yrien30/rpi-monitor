@@ -1,19 +1,23 @@
 ARG BUILD_FOR
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS amd64
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal-arm64v8 AS arm64
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal-arm64v8 AS arm64-image
 
-FROM ${BUILD_FOR} AS final
+FROM arm64-image AS arm64
 # we need to add the raspberrypi GPG key which uses
 # "apt-key adv" and this in return requires gnupg
 RUN apt update && apt install -y gnupg
 RUN \
   # Update system
-  echo "deb http://ports.ubuntu.com/ubuntu-ports focal main" >> /etc/apt/sources.list.d/ubuntu-main.list && \
-  apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5 && \
+  echo "deb http://archive.raspberrypi.org/debian/ jessie main" >> /etc/apt/sources.list.d/raspberrypi.list && \
+  apt-key adv --keyserver keyserver.ubuntu.com --recv 82B129927FA3303E && \
   apt-get update && \
   apt-get upgrade -y
 
+
+FROM ${BUILD_FOR} AS final
+
   
+
 RUN apt-get install -y libraspberrypi-bin
 WORKDIR /deploy
 COPY deploy/. ./
