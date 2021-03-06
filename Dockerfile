@@ -12,13 +12,10 @@ RUN \
   apt-key adv --keyserver keyserver.ubuntu.com --recv 82B129927FA3303E && \
   apt-get update && \
   apt-get upgrade -y
+RUN apt-get install -y libraspberrypi-bin
 
 
 FROM ${BUILD_FOR} AS final
-
-  
-
-RUN apt-get install -y libraspberrypi-bin
 WORKDIR /deploy
 COPY deploy/. ./
 LABEL org.opencontainers.image.source https://github.com/yrien30/rpi-monitor
