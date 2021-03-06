@@ -8,10 +8,12 @@ FROM ${BUILD_FOR} AS final
 RUN apt update && apt install -y gnupg
 RUN \
   # Update system
-  echo "deb http://archive.raspberrypi.org/debian/ jessie main" >> /etc/apt/sources.list.d/raspberrypi.list && \
-  apt-key adv --keyserver keyserver.ubuntu.com --recv 82B129927FA3303E && \
+  echo "deb http://ports.ubuntu.com/ubuntu-ports focal main" >> /etc/apt/sources.list.d/ubuntu-main.list && \
+  apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 3B4FE6ACC0B21F32 40976EAF437D05B5 && \
   apt-get update && \
   apt-get upgrade -y
+
+  
 RUN apt-get install -y libraspberrypi-bin
 WORKDIR /deploy
 COPY deploy/. ./
