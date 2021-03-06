@@ -36,6 +36,30 @@ namespace rpi_monitor
             else
                 return 0.0f;
         }
+
+        internal static string GetThrottledState()
+        {
+            var result = "";
+            var process = new Process()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = $"-c \"/opt/vc/bin/vcgencmd get_throttled\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                }
+            };
+            process.Start();
+            result = process.StandardOutput.ReadToEnd();
+            process.WaitForExit();
+
+            result = result.Trim();
+            var resultCode = result[result.Length - 1];
+
+            return resultCode.ToString();
+        }
         static void Main(string[] args)
         {
             while(true)
