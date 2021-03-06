@@ -47,8 +47,6 @@ jobs:
           echo "DOCKER_TAG_PREFIX_EXCEPT_MAIN=${{ env.BRANCH_NAME }}-" >> $GITHUB_ENV
           echo "DOCKER_TAG_POSTFIX_EXCEPT_MAIN=-${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
           echo "VERSION_SUFFIX_EXCEPT_MAIN=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
-    - name: Setup nuget
-      run: dotnet nuget add source https://nuget.pkg.github.com/vendanor/index.json -n vendanor -u ralftar -p ${{ secrets.NUGET_READ_PACKAGE }} --store-password-in-clear-text
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
