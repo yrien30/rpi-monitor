@@ -64,7 +64,7 @@ namespace rpi_monitor
         {
             while(true)
             {
-                Console.WriteLine("Temprature:" + GetTemperature());
+                Console.WriteLine("Temprature:" + GetTemperature() + " ThrottleState:" + GetThrottledState());
                 Thread.Sleep(5000);
             }
         }
