@@ -38,7 +38,7 @@ namespace rpi_monitor
         }
         static void Main(string[] args)
         {
-            while(1)
+            while(true)
             {
                 Console.WriteLine("Temprature:" + GetTemperature());
                 Thread.Sleep(5000);
