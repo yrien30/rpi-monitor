@@ -45,7 +45,7 @@ namespace rpi_monitor
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "/bin/bash",
-                    Arguments = $"-c \"/opt/vc/bin/vcgencmd get_throttled\"",
+                    Arguments = $"-c \"/usr/bin/vcgencmd get_throttled\"",
                     RedirectStandardOutput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true,
