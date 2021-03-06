@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>rpi_monitor</RootNamespace>
+    <BuildNumber Condition="'$(BuildNumber)'==''">0</BuildNumber>
+    <Version>0.3.$(BuildNumber)</Version>
+    <VersionSuffix>$(VersionSuffix)</VersionSuffix>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,97 @@
+name: Build and publish docker images 
+
+on:
+  push:
+    branches:
+      - alpha
+      - beta
+      - main
+
+env:
+  DOCKER_REGISTRY: 'ghcr.io'
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    name: Build and publish
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v2
+      
+    - name: Setup .NET 5.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+
+    - name: Get docker version major
+      id: version
+      uses: mavrosxristoforos/get-xml-info@1.0
+      with:
+        xml-file: rpi-monitor.csproj
+        xpath: //PropertyGroup/Version
+
+    - name: Save docker version major to env var
+      run: echo "DOCKER_TAG_MAJOR=${{ steps.version.outputs.info }}" >> $GITHUB_ENV
+
+    - name: Get branch name
+      run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/} | tr / -)" >> $GITHUB_ENV
+  
+    - name: Get repository variable in lowercase
+      run: echo "REPOSITORY=$(echo $GITHUB_REPOSITORY | tr '[A-Z]' '[a-z]')" >> $GITHUB_ENV
+
+    - name: Setting docker tag prefix
+      if: "!contains(github.ref, 'main')"
+      run: |
+          echo "DOCKER_TAG_PREFIX_EXCEPT_MAIN=${{ env.BRANCH_NAME }}-" >> $GITHUB_ENV
+          echo "DOCKER_TAG_POSTFIX_EXCEPT_MAIN=-${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "VERSION_SUFFIX_EXCEPT_MAIN=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+    - name: Setup nuget
+      run: dotnet nuget add source https://nuget.pkg.github.com/vendanor/index.json -n vendanor -u ralftar -p ${{ secrets.NUGET_READ_PACKAGE }} --store-password-in-clear-text
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+  
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.CR_PAT }}
+
+    - uses: actions/setup-node@v1
+
+
+    - name: Dotnet publish linux-x64
+      run: dotnet publish rpi-monitor.csproj -c Release -o deploy /p:BuildNumber=${{ github.run_number }} /p:VersionSuffix=${{ env.VERSION_SUFFIX_EXCEPT_MAIN }} -r linux-x64
+
+    - name: Push linux-x64 to GitHub Container Registry
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        platforms: linux/amd64
+        build-args: BUILD_FOR=amd64
+        push: true
+        tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPOSITORY }}:${{env.DOCKER_TAG_MAJOR }}${{ github.run_number }}${{ env.DOCKER_TAG_POSTFIX_EXCEPT_MAIN }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPOSITORY }}:${{ env.DOCKER_TAG_PREFIX_EXCEPT_MAIN }}latest
+    - name: Delete deploy folder
+      run: rm -r deploy
+
+    - name: Dotnet publish linux-arm64
+      run: dotnet publish rpi-monitor.csproj -c Release -o deploy /p:BuildNumber=${{ github.run_number }} /p:VersionSuffix=${{ env.VERSION_SUFFIX_EXCEPT_MAIN }} -r linux-arm64 
+
+    - name: Push linux-arm64 to GitHub Container Registry
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        platforms: linux/arm64
+        build-args: BUILD_FOR=arm64
+        push: true
+        tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPOSITORY }}:${{env.DOCKER_TAG_MAJOR }}${{ github.run_number }}${{ env.DOCKER_TAG_POSTFIX_EXCEPT_MAIN }}-arm64
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPOSITORY }}:${{ env.DOCKER_TAG_PREFIX_EXCEPT_MAIN }}latest-arm64
