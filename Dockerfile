@@ -3,6 +3,9 @@ FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS amd64
 FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal-arm64v8 AS arm64
 
 FROM ${BUILD_FOR} AS final
+# we need to add the raspberrypi GPG key which uses
+# "apt-key adv" and this in return requires gnupg
+RUN apt update && apt install -y gnupg
 RUN \
   # Update system
   echo "deb http://archive.raspberrypi.org/debian/ jessie main" >> /etc/apt/sources.list.d/raspberrypi.list && \
